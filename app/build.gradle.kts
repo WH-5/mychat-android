@@ -19,8 +19,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // no buildConfigField needed
+        }
         release {
             isMinifyEnabled = false
+            // no buildConfigField needed
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -62,4 +66,15 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.okhttp.v490) // or a later version
+
+    implementation(libs.androidx.navigation.compose)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+    implementation (libs.androidx.lifecycle.viewmodel.ktx)
+
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
+    implementation("androidx.compose.material:material-icons-extended")
 }

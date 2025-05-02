@@ -1,17 +1,57 @@
 package com.github.wh5.mychat
 
+// MainActivity.kt
+import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.github.wh5.mychat.ui.ChatScreen
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.example.mychat.ui.login.LoginScreen
+import com.github.wh5.mychat.ui.login.RegisterScreen
+import com.github.wh5.mychat.ui.main.MainScreen
+
 import com.github.wh5.mychat.ui.theme.MychatTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.wh5.mychat.viewmodel.LoginViewModel
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MychatTheme {
-                ChatScreen()
+                val navController = rememberNavController()
+
+                NavHost(navController, startDestination = "login") {
+                    composable("login") {
+                        // 创建 LoginViewModel 实例并传递给 LoginScreen
+                        val loginViewModel: LoginViewModel = viewModel()
+                        LoginScreen(
+                            viewModel = loginViewModel,  // 传递 viewModel
+                            onLoginSuccess = { navController.navigate("main") },
+                            onGoRegister = { navController.navigate("register") }
+                        )
+                    }
+                    composable("register") {
+                        RegisterScreen(
+                            context = this@MainActivity,
+                            onRegisterSuccess = {
+                                Toast.makeText(this@MainActivity, "注册成功，请登录", Toast.LENGTH_SHORT).show()
+                                navController.navigate("login")
+                            },
+                            onBackToLogin = { navController.popBackStack("login", inclusive = false) }
+                        )
+                    }
+                    composable("main") {
+                        MainScreen()
+                    }
+                }
             }
         }
     }
