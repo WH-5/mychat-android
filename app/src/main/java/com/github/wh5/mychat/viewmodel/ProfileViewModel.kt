@@ -9,6 +9,7 @@ import com.github.wh5.mychat.data.remote.ApiClient
 import com.github.wh5.mychat.viewmodel.UserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(private val context: Context): ViewModel() {
@@ -22,6 +23,8 @@ class ProfileViewModel(private val context: Context): ViewModel() {
         Log.d("ProfileViewModel", "调用 loadUserProfile，uniqueId = $uniqueId")
         viewModelScope.launch {
             try {
+                // 打印请求地址和参数
+
                 val profile = ApiClient.authService.getUserProfile(uniqueId)
                 Log.d("ProfileViewModel", "获取用户信息成功: $profile")  // 打印响应体
                 _userProfile.value = profile.profile  // 赋值给 _userProfile
@@ -59,11 +62,36 @@ class ProfileViewModel(private val context: Context): ViewModel() {
 
                 // 更新本地存储的 unique_id
                 LoginPreferences.saveUniqueId(context, response.newUniqueId)
-
-                loadUserProfile(response.newUniqueId)  // 重新加载资料
+                // 不在这里直接调用 loadUserProfile，交由 UI 层决定
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "更新唯一标识失败", e)
             }
         }
+    }
+
+    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
+    val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn
+
+    fun logout() {
+        viewModelScope.launch {
+            LoginPreferences.clear(context)
+            _isLoggedIn.value = false
+            Log.d("ProfileViewModel", "已清除登录信息并更新登录状态")
+        }
+    }
+    // 新增 fetchUserProfile 和 setUserProfile 方法
+    suspend fun fetchUserProfile(uniqueId: String): UserProfile? {
+        return try {
+            val profile = ApiClient.authService.getUserProfile(uniqueId)
+            Log.d("ProfileViewModel", "fetchUserProfile 获取成功: $profile")
+            profile.profile
+        } catch (e: Exception) {
+            Log.e("ProfileViewModel", "fetchUserProfile 获取失败", e)
+            null
+        }
+    }
+
+    fun setUserProfile(profile: UserProfile?) {
+        _userProfile.value = profile
     }
 }

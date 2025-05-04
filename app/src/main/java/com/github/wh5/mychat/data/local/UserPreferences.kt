@@ -4,14 +4,16 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.github.wh5.mychat.data.local.LoginPreferences.TOKEN
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 
 // 1. 定义一个 Context 扩展属性
 val Context.userDataStore by preferencesDataStore(name = "user_prefs")
 
 object LoginPreferences {
-    private val TOKEN = stringPreferencesKey("token")
+    public val TOKEN = stringPreferencesKey("token")
     public val UNIQUE_ID = stringPreferencesKey("unique_id")
     private val PHONE = stringPreferencesKey("phone")
     private val KDF_SALT = stringPreferencesKey("kdf_salt")
@@ -51,10 +53,23 @@ object LoginPreferences {
         context.userDataStore.edit { it.clear() }
     }
 
+    // 保存 token
+    suspend fun saveToken(context: Context, token: String) {
+        context.userDataStore.edit { prefs ->
+            prefs[TOKEN] = token
+        }
+    }
+
     // 保存唯一标识
     suspend fun saveUniqueId(context: Context, uniqueId: String) {
         context.userDataStore.edit { prefs ->
             prefs[UNIQUE_ID] = uniqueId
         }
+    }
+
+
+    // 一次性获取 token（非 Flow）
+    suspend fun getTokenOnce(context: Context): String {
+        return context.userDataStore.data.map { it[TOKEN] ?: "" }.first()
     }
 }

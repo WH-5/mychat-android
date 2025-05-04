@@ -32,6 +32,9 @@ fun EditProfileScreen(navController: NavHostController) {
     var location by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(userProfile) {
         userProfile?.let {
             nickname = it.nickname
@@ -95,8 +98,12 @@ fun EditProfileScreen(navController: NavHostController) {
                         birthday = birthday,
                         location = location,
                     )
-                    viewModel.updateProfile(uniqueId, updated)
-                    navController.popBackStack()
+                    try {
+                        viewModel.updateProfile(uniqueId, updated)
+                        navController.popBackStack()
+                    } catch (e: Exception) {
+                        errorMessage = "保存失败: ${e.message}"
+                    }
                 }
             },
             modifier = Modifier.align(Alignment.End)
@@ -104,6 +111,18 @@ fun EditProfileScreen(navController: NavHostController) {
             Text("保存")
         }
     }
+
+    if (errorMessage != null) {
+        LaunchedEffect(errorMessage) {
+            snackbarHostState.showSnackbar(errorMessage!!)
+            errorMessage = null
+        }
+    }
+
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Composable

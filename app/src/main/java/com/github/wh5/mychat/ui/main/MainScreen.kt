@@ -53,7 +53,7 @@ fun MainScreen() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "chat_list",
+            startDestination = "chat_list",  // 确保从这里开始，不是从 main
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("chat_list") { ChatListScreen() }

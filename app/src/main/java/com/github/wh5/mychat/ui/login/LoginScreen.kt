@@ -135,7 +135,6 @@ fun LoginScreen(
         // 登录按钮
         Button(
             onClick = {
-//                testEncryptionRoundTrip()
                 if (phoneOrId) {
                     viewModel.loginWithPhone(phone, password, context, onLoginSuccess)
                 } else {

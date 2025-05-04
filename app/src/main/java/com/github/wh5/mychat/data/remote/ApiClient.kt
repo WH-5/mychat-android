@@ -1,5 +1,6 @@
 package com.github.wh5.mychat.data.remote
 
+import android.util.Log
 import com.github.wh5.mychat.common.AppConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -16,6 +17,7 @@ class TokenInterceptor(private val getToken: () -> String?) : Interceptor {
                 addHeader("Authorization", "Bearer $token")
             }
         }.build()
+        Log.d("ApiClient", "Request Headers: ${newRequest.headers}")
         return chain.proceed(newRequest)
     }
 }

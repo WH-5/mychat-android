@@ -19,6 +19,9 @@ import com.github.wh5.mychat.ui.main.MainScreen
 import com.github.wh5.mychat.ui.theme.MychatTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.wh5.mychat.viewmodel.LoginViewModel
+import com.github.wh5.mychat.ui.splash.SplashScreen
+import com.github.wh5.mychat.data.local.LoginPreferences
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -26,14 +29,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MychatTheme {
+                val context = LocalContext.current
                 val navController = rememberNavController()
 
-                NavHost(navController, startDestination = "login") {
+                NavHost(navController, startDestination = "splash") {
+                    composable("splash") {
+                        SplashScreen(navController = navController, userPreferences = LoginPreferences)
+                    }
                     composable("login") {
-                        // 创建 LoginViewModel 实例并传递给 LoginScreen
                         val loginViewModel: LoginViewModel = viewModel()
                         LoginScreen(
-                            viewModel = loginViewModel,  // 传递 viewModel
+                            viewModel = loginViewModel,
                             onLoginSuccess = { navController.navigate("main") },
                             onGoRegister = { navController.navigate("register") }
                         )

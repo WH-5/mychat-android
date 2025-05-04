@@ -110,7 +110,12 @@ class LoginViewModel : ViewModel() {
                         encryptedPrivateKey = realPrivateKey  // 保存解密后的真实私钥
                     )
 
-                    ApiClient.setToken(loginResponse.token) // 设置 token
+                    // 保存 token 到本地
+                    LoginPreferences.saveToken(context, loginResponse.token)
+
+                    // 设置 token 到 ApiClient
+                    ApiClient.setToken(loginResponse.token)
+
                     onLoginSuccess()  // 登录成功后跳转
                 } else {
                     showError("手机号或密码错误")
@@ -130,6 +135,16 @@ class LoginViewModel : ViewModel() {
         }
     }
 
+    // 在 LoginViewModel 中添加 autoLogin 方法
+    suspend fun autoLogin(context: Context, onLoginSuccess: () -> Unit) {
+        val token = LoginPreferences.getTokenOnce(context)
+        if (token.isNullOrEmpty()) {
+            showError("Token 不存在")  // 如果没有 token，可以提示错误
+        } else {
+            ApiClient.setToken(token)  // 设置 token 到 ApiClient
+            onLoginSuccess()  // 如果设置成功，继续执行登录成功后的操作
+        }
+    }
     // 使用唯一标识登录
     fun loginWithUniqueId(uniqueId: String, password: String, context: Context, onLoginSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -165,7 +180,20 @@ class LoginViewModel : ViewModel() {
                         encryptedPrivateKey = realPrivateKey  // 保存解密后的真实私钥
                     )
 
-                    ApiClient.setToken(loginResponse.token) // 设置 token
+
+
+                    Log.d("TokenDebug", "调用 saveToken 前读取 token: " + LoginPreferences.getTokenOnce(context))
+                    LoginPreferences.saveToken(context, loginResponse.token)
+                    Log.d("TokenDebug", "调用 saveToken 后读取 token: " + LoginPreferences.getTokenOnce(context))
+
+                    val savedToken = LoginPreferences.getTokenOnce(context)
+
+                    // 保存 token 到本地
+                    LoginPreferences.saveToken(context, loginResponse.token)
+
+                    // 设置 token 到 ApiClient
+                    ApiClient.setToken(loginResponse.token)
+
                     onLoginSuccess()  // 登录成功后跳转
                 } else {
                     showError("唯一标识或密码错误")
