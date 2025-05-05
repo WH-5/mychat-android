@@ -1,5 +1,7 @@
 package com.github.wh5.mychat.ui.main
 
+import com.github.wh5.mychat.ui.friend.FriendRequestScreen
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
@@ -14,9 +16,13 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 
 import com.github.wh5.mychat.ui.chat.ChatListScreen
+import com.github.wh5.mychat.ui.friend.AddFriendScreen
 import com.github.wh5.mychat.ui.friend.FriendListScreen
+import com.github.wh5.mychat.ui.friend.FriendProfileScreen
 import com.github.wh5.mychat.ui.profile.ProfileScreen
 import com.github.wh5.mychat.ui.profile.EditProfileScreen
+import com.github.wh5.mychat.viewmodel.FriendViewModel
+
 
 @Composable
 fun MainScreen() {
@@ -57,10 +63,27 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("chat_list") { ChatListScreen() }
-            composable("friend_list") { FriendListScreen() }
+            composable("friend_list") {
+                val friendViewModel: FriendViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+                FriendListScreen(navController = navController, viewModel = friendViewModel)
+            }
             composable("profile") { ProfileScreen(navController) }
             composable("edit_profile") {
                 EditProfileScreen(navController)
+            }
+            composable("friend_requests") {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val friendViewModel: FriendViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+                FriendRequestScreen(navController = navController, context = context, viewModel = friendViewModel)
+            }
+            composable("add_friend") {
+                AddFriendScreen(navController = navController)
+            }
+            composable("friend_detail/{friendId}") { backStackEntry ->
+                val friendId = backStackEntry.arguments?.getString("friendId")
+                if (friendId != null) {
+                    FriendProfileScreen(friendName = friendId)
+                }
             }
         }
     }
