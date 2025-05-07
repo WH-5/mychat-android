@@ -114,7 +114,7 @@ class LoginViewModel : ViewModel() {
                     LoginPreferences.saveToken(context, loginResponse.token)
 
                     // 设置 token 到 ApiClient
-                    ApiClient.setToken(loginResponse.token)
+                    ApiClient.token = (loginResponse.token)
 
                     onLoginSuccess()  // 登录成功后跳转
                 } else {
@@ -141,7 +141,7 @@ class LoginViewModel : ViewModel() {
         if (token.isNullOrEmpty()) {
             showError("Token 不存在")  // 如果没有 token，可以提示错误
         } else {
-            ApiClient.setToken(token)  // 设置 token 到 ApiClient
+            ApiClient.token = token  // 设置 token 到 ApiClient
             onLoginSuccess()  // 如果设置成功，继续执行登录成功后的操作
         }
     }
@@ -192,7 +192,7 @@ class LoginViewModel : ViewModel() {
                     LoginPreferences.saveToken(context, loginResponse.token)
 
                     // 设置 token 到 ApiClient
-                    ApiClient.setToken(loginResponse.token)
+                    ApiClient.token = (loginResponse.token)
 
                     onLoginSuccess()  // 登录成功后跳转
                 } else {

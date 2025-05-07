@@ -32,7 +32,7 @@ class SplashViewModel : ViewModel() {
             Log.d("SplashViewModel", "autoLogin: token 不存在")
             _isLoggedIn.value = false
         } else {
-            ApiClient.setToken(token)  // 设置 token 到 ApiClient
+            ApiClient.token = token// 设置 token 到 ApiClient
             _isLoggedIn.value = true
             Log.d("SplashViewModel", "autoLogin: 设置 isLoggedIn = true")
             onLoginSuccess()  // 登录成功后执行的操作

@@ -1,7 +1,9 @@
 package com.github.wh5.mychat.ui.friend
 
+import android.R
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -50,7 +52,7 @@ fun FriendRequestScreen(
         ) {
             Button(onClick = {
                 // 点击按钮后加载好友请求
-                viewModel.loadPendingRequests(context)
+                viewModel.loadPendingRequests()
                 android.util.Log.d("FriendRequestScreen", "加载好友请求接口调用了")
             }) {
                 Text("加载好友请求")
@@ -70,12 +72,12 @@ fun FriendRequestScreen(
                         PendingRequestItem(
                             request = request,
                             onAccept = { requestId ->
-                                viewModel.acceptRequest(context = context, requestId = requestId) { success, message ->
+                                viewModel.acceptRequest(requestId = requestId) { success, message ->
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }
                             },
                             onReject = { requestId ->
-                                viewModel.rejectRequest(context = context, requestId = requestId) { success, message ->
+                                viewModel.rejectRequest( requestId = requestId) { success, message ->
                                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }
                             }
@@ -90,8 +92,8 @@ fun FriendRequestScreen(
 @Composable
 fun PendingRequestItem(
     request: PendingRequest,
-    onAccept: (Long) -> Unit,
-    onReject: (Long) -> Unit
+    onAccept: (String) -> Unit,
+    onReject: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -108,11 +110,13 @@ fun PendingRequestItem(
         ) {
             Text(text = request.senderId, style = MaterialTheme.typography.bodyLarge)
             Row {
-                Button(onClick = { onAccept(request.senderId.toLong()) }, modifier = Modifier.padding(end = 8.dp)) {
+                Button(onClick = { onAccept(request.senderId) }, modifier = Modifier.padding(end = 8.dp)) {
                     Text("同意")
+                    Log.d("ButtonClick", "Button clicked, calling API")
                 }
-                OutlinedButton(onClick = { onReject(request.senderId.toLong()) }) {
+                OutlinedButton(onClick = { onReject(request.senderId) }) {
                     Text("拒绝")
+                    Log.d("ButtonClick", "Button clicked, calling API")
                 }
             }
         }

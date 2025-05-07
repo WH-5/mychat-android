@@ -1,15 +1,38 @@
 package com.github.wh5.mychat.ui.friend
 
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.wh5.mychat.viewmodel.FriendViewModel
+import com.github.wh5.mychat.viewmodel.UserProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendProfileScreen(friendName: String = "好友昵称") {
+fun FriendProfileScreen(friendName: String = "好友昵称", friendId: String, viewModel: FriendViewModel = viewModel()) {
+    // 获取好友资料
+    val friendProfile by viewModel.friendProfile.collectAsState(initial = null)
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    var tempRemark by remember { mutableStateOf(TextFieldValue("")) }
+    val context = LocalContext.current
+
+    // 获取失败时的提示
+    val isLoading = friendProfile == null
+
+    LaunchedEffect(friendId) {
+        // 加载好友资料
+        viewModel.getFriendProfile(friendId)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -22,14 +45,133 @@ fun FriendProfileScreen(friendName: String = "好友昵称") {
                 .padding(paddingValues)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "昵称：$friendName", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { /* TODO: 发起聊天等操作 */ }) {
-                Text("发送消息")
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                // 显示好友资料
+                ProfileCard(friendProfile, friendId, tempRemark, showEditDialog, onEditClick = {
+                    tempRemark = TextFieldValue(friendProfile?.nickname ?: "")
+                    showEditDialog = true
+                })
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { /* TODO: 发起聊天等操作 */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("发送消息")
+                }
             }
         }
     }
+
+    if (showEditDialog) {
+        EditRemarkDialog(
+            tempRemark = tempRemark,
+            onRemarkChange = { tempRemark = it },
+            onDismiss = { showEditDialog = false },
+            onConfirm = {
+                viewModel.updateFriendRemark(friendId, tempRemark.text) { success, message ->
+                    Toast.makeText(context, if (success) "备注更新成功" else "备注更新失败", Toast.LENGTH_SHORT).show()
+                }
+                showEditDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun ProfileCard(
+    friendProfile: UserProfile?,
+    friendId: String,
+    tempRemark: TextFieldValue,
+    showEditDialog: Boolean,
+    onEditClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "备注：${friendProfile?.nickname.takeIf { !it.isNullOrBlank() } ?: friendId}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clickable { onEditClick() }
+                    .padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "个性签名：${friendProfile?.bio ?: "无"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "性别：${when(friendProfile?.gender) {
+                    1 -> "男"
+                    2 -> "女"
+                    else -> "保密"
+                }}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "生日：${friendProfile?.birthday ?: "未填写"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "位置：${friendProfile?.location ?: "未填写"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
+@Composable
+fun EditRemarkDialog(
+    tempRemark: TextFieldValue,
+    onRemarkChange: (TextFieldValue) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("修改备注") },
+        text = {
+            OutlinedTextField(
+                value = tempRemark,
+                onValueChange = onRemarkChange,
+                label = { Text("备注") }
+            )
+        },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
 }

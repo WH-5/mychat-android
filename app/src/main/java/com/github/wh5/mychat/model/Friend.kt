@@ -7,22 +7,24 @@ import kotlinx.serialization.SerialName
 /**
  * 好友数据模型
  * @param id 用户唯一标识
- * @param username 用户名（用于登录）
  * @param nickname 用户设置的昵称（显示优先级高于用户名）
  * @param avatarUrl 用户头像链接（可选）
  */
 @Serializable
 data class Friend(
-    val id: String,
-    val username: String,
+    @SerialName("uniqueId")
+    val uniqueId: String,
+
+    @SerialName("nickname")
     val nickname: String,
-    val avatarUrl: String? = null
+
+
 ) {
     /**
-     * 获取显示名称：优先昵称，没有则返回用户名
+     * 获取显示名称：优先昵称，没有则返回id
      */
     fun getDisplayName(): String {
-        return if (nickname.isNotBlank()) nickname else username
+        return if (nickname.isNotBlank()) nickname else uniqueId
     }
 }
 /**
@@ -59,4 +61,12 @@ data class PendingRequest(
 
     @SerializedName("requestTime")
     val requestTime: String
+)
+
+@Serializable
+data class FriendListResponse(
+    @SerializedName("friends")
+    val friends: List<Friend>,
+    @SerializedName("count")
+    val count: Int
 )

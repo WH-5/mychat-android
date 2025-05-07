@@ -1,5 +1,7 @@
 package com.github.wh5.mychat.ui.main
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.github.wh5.mychat.ui.friend.FriendRequestScreen
 
 import androidx.compose.foundation.layout.padding
@@ -13,7 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 
 import com.github.wh5.mychat.ui.chat.ChatListScreen
 import com.github.wh5.mychat.ui.friend.AddFriendScreen
@@ -24,6 +28,7 @@ import com.github.wh5.mychat.ui.profile.EditProfileScreen
 import com.github.wh5.mychat.viewmodel.FriendViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
@@ -79,10 +84,13 @@ fun MainScreen() {
             composable("add_friend") {
                 AddFriendScreen(navController = navController)
             }
-            composable("friend_detail/{friendId}") { backStackEntry ->
+            composable(
+                route = "friend_detail/{friendId}",
+                arguments = listOf(navArgument("friendId") { type = NavType.StringType })
+            ) { backStackEntry ->
                 val friendId = backStackEntry.arguments?.getString("friendId")
                 if (friendId != null) {
-                    FriendProfileScreen(friendName = friendId)
+                    FriendProfileScreen(friendId = friendId)
                 }
             }
         }

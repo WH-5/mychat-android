@@ -5,9 +5,11 @@ import okhttp3.logging.HttpLoggingInterceptor
 import android.util.Log
 import com.github.wh5.mychat.common.AppConfig
 import com.github.wh5.mychat.model.Friend
+import com.github.wh5.mychat.model.FriendListResponse
 import com.github.wh5.mychat.model.FriendRequest
 import com.github.wh5.mychat.model.FriendRequestBody
 import com.github.wh5.mychat.model.PendingRequest
+import com.github.wh5.mychat.viewmodel.UserProfile
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -42,11 +44,8 @@ class TokenInterceptor(private val getToken: () -> String?) : Interceptor {
 
 object ApiClient {
     // 示例静态 token，正式项目应使用 DataStore 或缓存值替代
-    private var token: String? = null
+    public var token: String? = null
 
-    fun setToken(value: String) {
-        token = value
-    }
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -72,7 +71,7 @@ object ApiClient {
     // ApiService 用于定义后端接口，getFriends 是获取好友列表的接口
     interface ApiService {
         @retrofit2.http.GET("friend/list")
-        suspend fun getFriends(): List<Friend>
+        suspend fun getFriends(): FriendListResponse
 
         @retrofit2.http.GET("friend-requests")
         suspend fun getFriendRequests(): List<FriendRequest>
@@ -95,7 +94,7 @@ object ApiClient {
         @retrofit2.http.GET("friend/profile/{unique_id}")
         suspend fun getFriendProfile(
             @retrofit2.http.Path("unique_id") uniqueId: String
-        ): Friend
+        ): UserProfile
 
         @retrofit2.http.POST("friend/mark")
         suspend fun updateFriendRemark(
@@ -117,7 +116,7 @@ object ApiClient {
 
     // 新增：调用该方法获取好友列表
     suspend fun getFriends(token: String): List<Friend> {
-        return apiService.getFriends()
+        return apiService.getFriends().friends
     }
 
     // 获取好友请求
@@ -126,33 +125,33 @@ object ApiClient {
     }
 
     // 接受好友请求
-    suspend fun acceptFriendRequest(token: String, requestId: String): Map<String, String> {
+    suspend fun acceptFriendRequest(requestId: String): Map<String, String> {
         val body = mapOf("request_id" to requestId)
-        return apiService.acceptFriendRequest(body) // 直接传递 Map
+        return apiService.acceptFriendRequest(body)
     }
 
     // 拒绝好友请求
-    suspend fun rejectFriendRequest(token: String, requestId: String): Map<String, String> {
+    suspend fun rejectFriendRequest(requestId: String): Map<String, String> {
         val body = mapOf("request_id" to requestId)
-        return apiService.rejectFriendRequest(body) // 直接传递 Map
+        return apiService.rejectFriendRequest(body)
     }
 
-    suspend fun sendFriendRequest(token: String, targetId: String): String {
+    suspend fun sendFriendRequest(targetId: String): String {
         val body = FriendRequestBody(targetId)
         apiService.sendFriendRequest(body)
         return "发送成功"
     }
 
-    suspend fun getFriendProfile(token: String, uniqueId: String): Friend {
+    suspend fun getFriendProfile(uniqueId: String): UserProfile {
         return apiService.getFriendProfile(uniqueId)
     }
 
-    suspend fun updateFriendRemark(token: String, uniqueId: String, remark: String): Map<String, String> {
+    suspend fun updateFriendRemark( uniqueId: String, remark: String): Map<String, String> {
         val body = mapOf("unique_id" to uniqueId, "remark" to remark)
         return apiService.updateFriendRemark(body)
     }
 
-    suspend fun deleteFriend(token: String, uniqueId: String): Map<String, String> {
+    suspend fun deleteFriend(uniqueId: String): Map<String, String> {
         val body = mapOf("unique_id" to uniqueId)
         return apiService.deleteFriend(body)
     }

@@ -55,7 +55,7 @@ fun AddFriendScreen(navController: NavController) {
         LaunchedEffect(isSending) {
             if (isSending && username.isNotEmpty()) {
                 try {
-                    val response = ApiClient.sendFriendRequest("Bearer YOUR_TOKEN", username)
+                    val response = ApiClient.sendFriendRequest( username)
                     // 发送成功的处理
                 } catch (e: Exception) {
                     // 获取服务器返回的错误信息

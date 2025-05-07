@@ -26,7 +26,7 @@ fun FriendListScreen(navController: NavController, viewModel: FriendViewModel = 
 
     LaunchedEffect(Unit) {
         // 在页面加载时调用 ViewModel 的方法加载数据
-        viewModel.loadFriends(context)
+        viewModel.loadFriends()
     }
 
     Column(modifier = Modifier
@@ -69,23 +69,24 @@ fun FriendListScreen(navController: NavController, viewModel: FriendViewModel = 
         ) {
             items(friends) { friend ->
                 Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
+                        .padding(vertical = 6.dp)
                         .clickable {
-                            // TODO: 点击跳转好友详情页
+                            navController.navigate("friend_detail/${friend.uniqueId}")
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = friend.username,
+                            text = if (!friend.nickname.isNullOrEmpty()) friend.nickname!! else (friend.uniqueId ?: ""),
                             style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "账号：${friend.uniqueId ?: ""}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
