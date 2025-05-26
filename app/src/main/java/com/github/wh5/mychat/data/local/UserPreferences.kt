@@ -5,9 +5,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.wh5.mychat.data.local.LoginPreferences.TOKEN
+import com.github.wh5.mychat.data.local.LoginPreferences.UNIQUE_ID
+import com.github.wh5.mychat.data.local.LoginPreferences.getTokenOnce
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // 1. 定义一个 Context 扩展属性
 val Context.userDataStore by preferencesDataStore(name = "user_prefs")
@@ -72,4 +76,20 @@ object LoginPreferences {
     suspend fun getTokenOnce(context: Context): String {
         return context.userDataStore.data.map { it[TOKEN] ?: "" }.first()
     }
+    // 一次性获取 unique_id（非 Flow）
+    suspend fun getUniqueIdOnce(context: Context): String {
+        return context.userDataStore.data.map { it[UNIQUE_ID] ?: "" }.first()
+    }
+    /**
+     * 非 suspend 的异步获取 token，便于 UI 层通过协程异步调用。
+     */
+    fun getTokenAsync(context: Context, callback: (String) -> Unit) {
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val token = getTokenOnce(context)
+            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                callback(token)
+            }
+        }
+    }
 }
+

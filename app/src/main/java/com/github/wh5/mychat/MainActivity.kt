@@ -22,6 +22,7 @@ import com.github.wh5.mychat.viewmodel.LoginViewModel
 import com.github.wh5.mychat.ui.splash.SplashScreen
 import com.github.wh5.mychat.data.local.LoginPreferences
 import androidx.compose.ui.platform.LocalContext
+import com.github.wh5.mychat.data.remote.ws.WebSocketManager
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -40,7 +41,16 @@ class MainActivity : ComponentActivity() {
                         val loginViewModel: LoginViewModel = viewModel()
                         LoginScreen(
                             viewModel = loginViewModel,
-                            onLoginSuccess = { navController.navigate("main") },
+                            onLoginSuccess = {
+                                LoginPreferences.getTokenAsync(context) { token ->
+                                    if (token.isNotBlank()) {
+                                        WebSocketManager.connect(token) { incoming ->
+                                            android.util.Log.d("WebSocket", "收到消息：$incoming")
+                                        }
+                                    }
+                                    navController.navigate("main")
+                                }
+                            },
                             onGoRegister = { navController.navigate("register") }
                         )
                     }

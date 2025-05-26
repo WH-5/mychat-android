@@ -1,5 +1,10 @@
 package com.github.wh5.mychat.ui.main
 
+import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.github.wh5.mychat.ui.friend.FriendRequestScreen
@@ -18,6 +23,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import com.github.wh5.mychat.data.local.LoginPreferences.getTokenOnce
+import com.github.wh5.mychat.data.remote.ws.WebSocketManager
 
 import com.github.wh5.mychat.ui.chat.ChatListScreen
 import com.github.wh5.mychat.ui.friend.AddFriendScreen
@@ -31,7 +38,20 @@ import com.github.wh5.mychat.viewmodel.FriendViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen() {
+
     val navController = rememberNavController()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val token = getTokenOnce(context)
+        if (token.isNotBlank()) {
+            android.util.Log.d("MainScreen", "连接 WebSocket，token 前5位：${token.take(5)}")
+            WebSocketManager.connect(token) { incoming ->
+                android.util.Log.d("WebSocket", "收到消息：$incoming")
+            }
+        } else {
+            android.util.Log.d("MainScreen", "token 为空，未连接 WebSocket")
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -67,7 +87,7 @@ fun MainScreen() {
             startDestination = "chat_list",  // 确保从这里开始，不是从 main
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("chat_list") { ChatListScreen() }
+            composable("chat_list") { ChatListScreen(navController = navController) }
             composable("friend_list") {
                 val friendViewModel: FriendViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
                 FriendListScreen(navController = navController, viewModel = friendViewModel)
@@ -90,7 +110,16 @@ fun MainScreen() {
             ) { backStackEntry ->
                 val friendId = backStackEntry.arguments?.getString("friendId")
                 if (friendId != null) {
-                    FriendProfileScreen(friendId = friendId)
+                    FriendProfileScreen(friendId = friendId, navController = navController)
+                }
+            }
+            composable(
+                route = "chat_window/{friendId}",
+                arguments = listOf(navArgument("friendId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val friendId = backStackEntry.arguments?.getString("friendId")
+                if (friendId != null) {
+                    com.github.wh5.mychat.ui.chat.ChatWindowScreen(navController = navController, friendId = friendId)
                 }
             }
         }

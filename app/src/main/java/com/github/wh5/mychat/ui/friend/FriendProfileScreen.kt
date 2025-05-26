@@ -12,12 +12,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.github.wh5.mychat.viewmodel.FriendViewModel
 import com.github.wh5.mychat.viewmodel.UserProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendProfileScreen(friendName: String = "好友昵称", friendId: String, viewModel: FriendViewModel = viewModel()) {
+fun FriendProfileScreen(friendName: String = "好友昵称", friendId: String, navController: NavController? = null, viewModel: FriendViewModel = viewModel()) {
     // 获取好友资料
     val friendProfile by viewModel.friendProfile.collectAsState(initial = null)
 
@@ -60,7 +61,10 @@ fun FriendProfileScreen(friendName: String = "好友昵称", friendId: String, v
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { /* TODO: 发起聊天等操作 */ },
+                    onClick = {
+                        // 跳转到聊天页面
+                        navController?.navigate("chat_window/$friendId")
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("发送消息")

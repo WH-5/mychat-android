@@ -9,6 +9,7 @@ import com.github.wh5.mychat.model.FriendListResponse
 import com.github.wh5.mychat.model.FriendRequest
 import com.github.wh5.mychat.model.FriendRequestBody
 import com.github.wh5.mychat.model.PendingRequest
+import com.github.wh5.mychat.viewmodel.GetFriendProfileReply
 import com.github.wh5.mychat.viewmodel.UserProfile
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -94,7 +95,7 @@ object ApiClient {
         @retrofit2.http.GET("friend/profile/{unique_id}")
         suspend fun getFriendProfile(
             @retrofit2.http.Path("unique_id") uniqueId: String
-        ): UserProfile
+        ): GetFriendProfileReply
 
         @retrofit2.http.POST("friend/mark")
         suspend fun updateFriendRemark(
@@ -142,7 +143,7 @@ object ApiClient {
         return "发送成功"
     }
 
-    suspend fun getFriendProfile(uniqueId: String): UserProfile {
+    suspend fun getFriendProfile(uniqueId: String): GetFriendProfileReply {
         return apiService.getFriendProfile(uniqueId)
     }
 

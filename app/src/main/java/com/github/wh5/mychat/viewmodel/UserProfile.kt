@@ -6,6 +6,7 @@ import com.github.wh5.mychat.data.remote.ApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.SerialName
 
 data class UserProfile(
     val nickname: String = "",
@@ -15,7 +16,12 @@ data class UserProfile(
     val location: String = "",
     val other: String = ""
 )
-
+data class GetFriendProfileReply(
+    @SerialName("user_profile")
+    val userProfile: UserProfile,
+    @SerialName("unique_id")
+    val uniqueId: String
+)
 data class ProfileRequest(
     val unique_id: String,
     val user_profile: UserProfile

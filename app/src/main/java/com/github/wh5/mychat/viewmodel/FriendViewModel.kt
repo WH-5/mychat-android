@@ -148,7 +148,7 @@ class FriendViewModel : ViewModel() {
 
                 Log.d("FriendViewModel", "Fetching friend profile with uniqueId: $uniqueId")
                 val response = ApiClient.getFriendProfile(uniqueId)
-                _friendProfile.value = response
+                _friendProfile.value = response.userProfile
                 Log.d("FriendViewModel", "Friend profile loaded: $response")
             } catch (e: Exception) {
                 Log.e("FriendViewModel", "Error loading friend profile: ${e.message}")
