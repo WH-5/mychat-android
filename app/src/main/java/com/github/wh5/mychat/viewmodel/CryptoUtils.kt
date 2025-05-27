@@ -32,6 +32,7 @@ import java.security.KeyFactory
 import java.security.interfaces.RSAPublicKey
 import java.security.interfaces.RSAPrivateKey
 import javax.crypto.Cipher
+import java.security.Key
 
 /**
  * 使用公钥加密消息
@@ -100,4 +101,33 @@ fun publicKeyToBase64(publicKey: PublicKey): String {
 fun privateKeyToBase64(privateKey: PrivateKey): String {
     val keyBytes = privateKey.encoded
     return Base64.encodeToString(keyBytes, Base64.NO_WRAP)
+}
+
+/**
+ * 使用指定密钥加密字符串
+ * 支持 PublicKey 或 PrivateKey
+ * @param key 密钥（PublicKey 或 PrivateKey）
+ * @param plaintext 明文内容
+ * @return 加密后的 Base64 编码字符串
+ */
+fun encryptWithKey(key: Key, plaintext: String): String {
+    val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+    cipher.init(Cipher.ENCRYPT_MODE, key)
+    val encryptedBytes = cipher.doFinal(plaintext.toByteArray())
+    return Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
+}
+
+/**
+ * 使用指定密钥解密字符串
+ * 支持 PublicKey 或 PrivateKey
+ * @param key 密钥（PublicKey 或 PrivateKey）
+ * @param base64Ciphertext 加密后的 Base64 字符串
+ * @return 解密后的明文字符串
+ */
+fun decryptWithKey(key: Key, base64Ciphertext: String): String {
+    val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+    cipher.init(Cipher.DECRYPT_MODE, key)
+    val decodedBytes = Base64.decode(base64Ciphertext, Base64.NO_WRAP)
+    val decryptedBytes = cipher.doFinal(decodedBytes)
+    return String(decryptedBytes)
 }

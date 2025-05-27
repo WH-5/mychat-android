@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,107 +50,123 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("欢迎登录", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 选择登录方式（手机号或唯一标识）
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .border(1.dp, MaterialTheme.colorScheme.onSurface)
-                .padding(1.dp)
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 左半部分：手机号
+                Text("欢迎登录", style = MaterialTheme.typography.headlineMedium)
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 选择登录方式（手机号或唯一标识）
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .clickable { phoneOrId = true }
-                        .background(
-                            if (phoneOrId) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surface
-                        )
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface)
+                        .padding(1.dp)
                 ) {
-                    Text("手机号", style = MaterialTheme.typography.bodyLarge)
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 左半部分：手机号
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f)
+                                .clickable { phoneOrId = true }
+                                .background(
+                                    if (phoneOrId) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surface
+                                )
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("手机号", style = MaterialTheme.typography.bodyLarge)
+                        }
+                        // 右半部分：唯一标识
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f)
+                                .clickable { phoneOrId = false }
+                                .background(
+                                    if (!phoneOrId) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surface
+                                )
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("唯一标识", style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
                 }
-                // 右半部分：唯一标识
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .clickable { phoneOrId = false }
-                        .background(
-                            if (!phoneOrId) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surface
-                        )
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 根据选择的登录方式显示不同的输入框
+                if (phoneOrId) {
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { phone = it },
+                        label = { Text("手机号") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = uniqueId,
+                        onValueChange = { uniqueId = it },
+                        label = { Text("唯一标识") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 密码输入框
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("密码") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 登录按钮
+                Button(
+                    onClick = {
+                        if (phoneOrId) {
+                            viewModel.loginWithPhone(phone, password, context, onLoginSuccess)
+                        } else {
+                            viewModel.loginWithUniqueId(uniqueId, password, context, onLoginSuccess)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("唯一标识", style = MaterialTheme.typography.bodyLarge)
+                    Text("登录", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // 根据选择的登录方式显示不同的输入框
-        if (phoneOrId) {
-            OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
-                label = { Text("手机号") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            OutlinedTextField(
-                value = uniqueId,
-                onValueChange = { uniqueId = it },
-                label = { Text("唯一标识") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // 密码输入框
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("密码") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 登录按钮
-        Button(
-            onClick = {
-                if (phoneOrId) {
-                    viewModel.loginWithPhone(phone, password, context, onLoginSuccess)
-                } else {
-                    viewModel.loginWithUniqueId(uniqueId, password, context, onLoginSuccess)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("登录")
-        }
-
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 去注册按钮
-        TextButton(onClick = onGoRegister) {
+        TextButton(
+            onClick = onGoRegister,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+        ) {
             Text("还没有账号？去注册")
         }
     }

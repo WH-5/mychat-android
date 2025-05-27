@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.wh5.mychat.viewmodel.FriendViewModel
 import com.github.wh5.mychat.viewmodel.UserProfile
+import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +33,14 @@ fun FriendProfileScreen(friendName: String = "好友昵称", friendId: String, n
     LaunchedEffect(friendId) {
         // 加载好友资料
         viewModel.getFriendProfile(friendId)
+        // 保存 publicKey 到 SharedPreferences
+        val publicKey = viewModel.friendPublicKey.value
+        if (!publicKey.isNullOrBlank()) {
+            context.getSharedPreferences("friend_keys", 0)
+                .edit() {
+                    putString("key_$friendId", publicKey)
+                }
+        }
     }
 
     Scaffold(

@@ -75,10 +75,13 @@ class ChatViewModel(
         return _chatHistories[friendId] ?: emptyList()
     }
 
-    fun sendMessage() {
+    fun sendMessage(friendKey: String) {
         val msg = _input.value
         if (msg.isNotBlank()) {
             try {
+                // 使用公钥加密消息内容
+                val publicKey = base64ToPublicKey(friendKey) // 得到一个 PublicKey
+                val encryptedMsg = encryptWithKey(publicKey, msg)
                 val payloadJson = JSONObject().apply {
                     put("content", msg)
                     put("message_type", "text")

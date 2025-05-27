@@ -30,7 +30,7 @@ fun AddFriendScreen(navController: NavController) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("请输入好友用户名") },
+            label = { Text("请输入好友标识") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -42,7 +42,7 @@ fun AddFriendScreen(navController: NavController) {
                     isSending = true
                     errorMessage = null
                 } else {
-                    errorMessage = "用户名不能为空"
+                    errorMessage = "标识不能为空"
                 }
             },
             modifier = Modifier.align(Alignment.End),
@@ -55,17 +55,14 @@ fun AddFriendScreen(navController: NavController) {
         LaunchedEffect(isSending) {
             if (isSending && username.isNotEmpty()) {
                 try {
-                    val response = ApiClient.sendFriendRequest( username)
-                    // 发送成功的处理
+                    val response = ApiClient.sendFriendRequest(username)
+                    // 发送成功后可做提示或跳转
                 } catch (e: Exception) {
-                    // 获取服务器返回的错误信息
                     var errorMsg = e.message ?: "请求失败"
                     android.util.Log.e("AddFriendScreen", "请求失败: $errorMsg")
 
-                    // 如果捕获到 Retrofit 的响应错误，可以通过 response 进行进一步分析
                     if (e is retrofit2.HttpException) {
                         val responseBody = e.response()?.errorBody()?.string()
-                        // 尝试从服务器返回的错误响应中获取 message 字段
                         val jsonResponse = responseBody?.let { JSONObject(it) }
                         val errorMessage = jsonResponse?.optString("message", "未知错误")
                         android.util.Log.e("AddFriendScreen", "错误响应: $errorMessage")

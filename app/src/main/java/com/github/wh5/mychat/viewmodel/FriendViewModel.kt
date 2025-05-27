@@ -130,8 +130,11 @@ class FriendViewModel : ViewModel() {
         handleFriendRequest(requestId, accept = false, onResult)
     }
 
-    private val _friendProfile = MutableStateFlow<UserProfile?>(null)
-    val friendProfile: StateFlow<UserProfile?> = _friendProfile
+private val _friendProfile = MutableStateFlow<UserProfile?>(null)
+val friendProfile: StateFlow<UserProfile?> = _friendProfile
+
+private val _friendPublicKey = MutableStateFlow<String?>(null)
+val friendPublicKey: StateFlow<String?> = _friendPublicKey
 
     private val _isUpdatingNickname = MutableStateFlow(false)
     val isUpdatingNickname: StateFlow<Boolean> = _isUpdatingNickname
@@ -149,6 +152,7 @@ class FriendViewModel : ViewModel() {
                 Log.d("FriendViewModel", "Fetching friend profile with uniqueId: $uniqueId")
                 val response = ApiClient.getFriendProfile(uniqueId)
                 _friendProfile.value = response.userProfile
+                _friendPublicKey.value = response.publicKey
                 Log.d("FriendViewModel", "Friend profile loaded: $response")
             } catch (e: Exception) {
                 Log.e("FriendViewModel", "Error loading friend profile: ${e.message}")

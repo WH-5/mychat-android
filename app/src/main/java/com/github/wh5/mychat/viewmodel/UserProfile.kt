@@ -16,11 +16,14 @@ data class UserProfile(
     val location: String = "",
     val other: String = ""
 )
+
 data class GetFriendProfileReply(
     @SerialName("user_profile")
     val userProfile: UserProfile,
     @SerialName("unique_id")
-    val uniqueId: String
+    val uniqueId: String,
+    @SerialName("public_key")
+    val publicKey: String,
 )
 data class ProfileRequest(
     val unique_id: String,

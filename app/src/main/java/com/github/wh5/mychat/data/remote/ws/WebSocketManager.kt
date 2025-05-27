@@ -65,6 +65,8 @@ object WebSocketManager : WebSocketListener() {
             put("payload", payloadJson)
         }
 
+        Log.d("sendmessagelook", "发送了一个文本消息: $messageJson")
+
         send(messageJson.toString())
     }
 

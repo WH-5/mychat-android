@@ -16,6 +16,7 @@ import com.github.wh5.mychat.viewmodel.ChatListViewModel
 import com.github.wh5.mychat.viewmodel.ChatListViewModelFactory
 import com.github.wh5.mychat.viewmodel.ChatSession
 import android.util.Log
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 data class ChatSession(
     val friendId: String,
@@ -62,6 +63,7 @@ fun ChatListScreen(navController: NavController) {
                 ChatSessionItem(session) {
                     navController.navigate("chat_window/${session.friendId}")
                 }
+                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
             }
         }
     }
@@ -69,20 +71,28 @@ fun ChatListScreen(navController: NavController) {
 
 @Composable
 fun ChatSessionItem(session: ChatSession, onClick: () -> Unit) {
-    Column(
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp)
             .clickable { onClick() }
-            .padding(16.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = session.friendName, style = MaterialTheme.typography.titleMedium)
-            Text(text = session.lastTime, style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = session.friendName, style = MaterialTheme.typography.titleMedium)
+                Text(text = session.lastTime, style = MaterialTheme.typography.bodySmall)
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = session.lastMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = session.lastMessage, style = MaterialTheme.typography.bodyMedium)
     }
 }

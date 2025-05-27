@@ -15,6 +15,8 @@ import com.github.wh5.mychat.viewmodel.RegisterViewModel
 import androidx.annotation.RequiresApi
 import com.github.wh5.mychat.viewmodel.EncryptionInfo
 import generateEncryptionInfo
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 import org.json.JSONObject
 
 fun getDeviceId(context: Context): String {
@@ -46,42 +48,59 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .padding(24.dp)
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("注册账号", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.height(24.dp))
-
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("手机号") },
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
                 modifier = Modifier.fillMaxWidth()
-            )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("注册账号", style = MaterialTheme.typography.headlineMedium)
+                    Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("手机号") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("密码") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth()
-            )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("密码") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-            Button(onClick = {
-                if (username.isNotBlank() && password.isNotBlank()) {
-                    val encryptionInfo = generateEncryptionInfo(password)
-                    viewModel.register(username, password, deviceId, encryptionInfo)
-                } else {
-                    showEmptyFieldsError = true
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            if (username.isNotBlank() && password.isNotBlank()) {
+                                val encryptionInfo = generateEncryptionInfo(password)
+                                viewModel.register(username, password, deviceId, encryptionInfo)
+                            } else {
+                                showEmptyFieldsError = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("注册")
+                    }
                 }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("注册")
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = onBackToLogin) {
                 Text("返回登录")

@@ -12,7 +12,23 @@ import androidx.navigation.NavHostController
 import com.github.wh5.mychat.viewmodel.ProfileViewModel
 import com.github.wh5.mychat.viewmodel.UserProfile
 import android.util.Log
+import androidx.compose.foundation.shape.RoundedCornerShape
 import kotlinx.coroutines.flow.filter
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListScope
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
@@ -69,43 +85,96 @@ fun ProfileScreen(navController: NavHostController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(text = "我的信息", style = MaterialTheme.typography.headlineSmall)
-
-        Text(
-            text = "唯一 ID：$uniqueId",
+        Row(
             modifier = Modifier
-                .clickable {
-                    newUniqueId = uniqueId
-                    showDialog = true
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "我的信息",
+                style = MaterialTheme.typography.headlineLarge,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { navController.navigate("edit_profile") },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "编辑资料",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
                 }
-        )
-        Text(text = "手机号：$phone")
-
-        if (profile != null) {
-            ProfileDetail(profile!!)
-        } else {
-            Text(text = "加载中…")
+                IconButton(
+                    onClick = { viewModel.logout() },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = "退出登录",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+            }
         }
-
-        Button(
-            onClick = {
-                navController.navigate("edit_profile")
-            },
-            modifier = Modifier.padding(top = 16.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("编辑资料")
-        }
-
-        Button(
-            onClick = {
-                viewModel.logout()
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-            modifier = Modifier.padding(top = 16.dp)
-        ) {
-            Text("退出登录", color = MaterialTheme.colorScheme.onError)
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ListItem(
+                            headlineContent = { Text("唯一 ID") },
+                            supportingContent = { Text(uniqueId) },
+                            modifier = Modifier
+                                .clickable {
+                                    newUniqueId = uniqueId
+                                    showDialog = true
+                                }
+                        )
+                        Divider()
+                        ListItem(
+                            headlineContent = { Text("手机号") },
+                            supportingContent = { Text(phone) }
+                        )
+                        if (profile != null) {
+                            Divider()
+                            ProfileDetail(profile!!)
+                        } else {
+                            Divider()
+                            ListItem(
+                                headlineContent = { Text("资料") },
+                                supportingContent = { Text("加载中…") }
+                            )
+                        }
+                    }
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 
@@ -135,7 +204,8 @@ fun ProfileScreen(navController: NavHostController) {
                     value = newUniqueId,
                     onValueChange = { newUniqueId = it },
                     label = { Text("新的唯一标识") },
-                    singleLine = true
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         )
@@ -169,14 +239,37 @@ fun ProfileScreen(navController: NavHostController) {
 
 @Composable
 fun ProfileDetail(profile: UserProfile) {
-    // Show user profile details, with fallback to "未设置" for blank values
-    Text(text = "昵称：${profile.nickname.ifBlank { "未设置" }}")
-    Text(text = "性别：${when (profile.gender) {
-        1 -> "男"
-        2 -> "女"
-        else -> "未知"
-    }}")
-    Text(text = "生日：${profile.birthday.ifBlank { "未填写" }}")
-    Text(text = "地区：${profile.location.ifBlank { "未填写" }}")
-    Text(text = "个性签名：${profile.bio.ifBlank { "未填写" }}")
+    // 使用 ListItem 显示各项资料，统一风格
+    ListItem(
+        headlineContent = { Text("昵称") },
+        supportingContent = { Text(profile.nickname.ifBlank { "未设置" }) }
+    )
+    Divider()
+    ListItem(
+        headlineContent = { Text("性别") },
+        supportingContent = {
+            Text(
+                when (profile.gender) {
+                    1 -> "男"
+                    2 -> "女"
+                    else -> "未知"
+                }
+            )
+        }
+    )
+    Divider()
+    ListItem(
+        headlineContent = { Text("生日") },
+        supportingContent = { Text(profile.birthday.ifBlank { "未填写" }) }
+    )
+    Divider()
+    ListItem(
+        headlineContent = { Text("地区") },
+        supportingContent = { Text(profile.location.ifBlank { "未填写" }) }
+    )
+    Divider()
+    ListItem(
+        headlineContent = { Text("个性签名") },
+        supportingContent = { Text(profile.bio.ifBlank { "未填写" }) }
+    )
 }
