@@ -9,8 +9,8 @@ import com.github.wh5.mychat.data.local.MessageEntity
 @Dao
 interface MessageDao {
 
-    @Query("SELECT * FROM messages WHERE friendId = :friendId ORDER BY timestamp ASC")
-    fun getMessagesForFriend(friendId: String): Flow<List<MessageEntity>>
+    @Query("SELECT * FROM messages WHERE userId = :userId AND friendId = :friendId ORDER BY timestamp ASC")
+    fun getMessagesForFriend(userId: String, friendId: String): Flow<List<MessageEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessage(message: MessageEntity)
@@ -20,10 +20,10 @@ interface MessageDao {
 
     @Query("""
         SELECT * FROM messages
-        WHERE id IN (
-            SELECT MAX(id) FROM messages GROUP BY friendId
+        WHERE userId = :userId AND id IN (
+            SELECT MAX(id) FROM messages WHERE userId = :userId GROUP BY friendId
         )
         ORDER BY timestamp DESC
     """)
-    fun getLatestMessages(): Flow<List<MessageEntity>>
+    fun getLatestMessages(userId: String): Flow<List<MessageEntity>>
 }

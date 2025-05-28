@@ -186,4 +186,15 @@ val friendPublicKey: StateFlow<String?> = _friendPublicKey
             }
         }
     }
+    fun deleteFriend(targetUniqueId: String, onResult: (Boolean, String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = ApiClient.deleteFriend(targetUniqueId)
+                val message = response["msg"] ?: "删除成功"
+                onResult(true, message)
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "删除失败")
+            }
+        }
+    }
 }

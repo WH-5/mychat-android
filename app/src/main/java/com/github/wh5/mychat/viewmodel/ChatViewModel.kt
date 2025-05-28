@@ -1,36 +1,42 @@
 package com.github.wh5.mychat.viewmodel
 
+import android.content.Context
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.github.wh5.mychat.data.local.LoginPreferences
+import com.github.wh5.mychat.data.local.MessageDao
+import com.github.wh5.mychat.data.local.MessageEntity
+import com.github.wh5.mychat.data.remote.ws.WebSocketManager
 import kotlinx.coroutines.flow.*
-
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import android.util.Base64
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import com.github.wh5.mychat.data.local.MessageEntity
-import com.github.wh5.mychat.data.local.MessageDao
-import com.github.wh5.mychat.data.remote.ws.WebSocketManager
+import androidx.compose.runtime.toMutableStateList
 
 data class ChatMessage(val content: String, val isMe: Boolean, val timestamp: String)
 
 class ChatViewModel(
+    private val context: Context,
     private val currentFriendId: String,
     private val messageDao: MessageDao
 ) : ViewModel() {
-    private val _chatHistories = mutableStateMapOf<String, MutableList<ChatMessage>>()
-    val chatHistories: SnapshotStateMap<String, MutableList<ChatMessage>> = _chatHistories
+    private val _chatHistories = mutableStateMapOf<String, SnapshotStateList<ChatMessage>>()
+    val chatHistories: SnapshotStateMap<String, SnapshotStateList<ChatMessage>> = _chatHistories
 
     private val _input = MutableStateFlow("")
     val input: StateFlow<String> = _input
 
     init {
         viewModelScope.launch {
-            messageDao.getMessagesForFriend(currentFriendId).collect { list ->
+            val userId = LoginPreferences.getUniqueIdOnce(context)
+            messageDao.getMessagesForFriend(userId = userId, friendId = currentFriendId).collect { list ->
                 _chatHistories[currentFriendId] = list.map {
                     ChatMessage(it.content, it.isMe, it.timestamp)
-                }.toMutableList()
+                }.toMutableStateList()
             }
         }
         // 注册 WebSocket 消息回调
@@ -48,11 +54,13 @@ class ChatViewModel(
                     val content = payloadJson.optString("content")
 
                     val message = ChatMessage(content, isMe = false, timestamp = timestamp)
-                    _chatHistories.getOrPut(from) { mutableListOf() }.add(message)
+                    _chatHistories.getOrPut(from) { mutableStateListOf() }.add(message)
 
                     viewModelScope.launch {
+                        val userId = LoginPreferences.getUniqueIdOnce(context)
                         messageDao.insertMessage(
                             MessageEntity(
+                                userId = userId,
                                 friendId = from,
                                 content = content,
                                 timestamp = timestamp,
@@ -72,7 +80,7 @@ class ChatViewModel(
     }
 
     fun getMessagesFor(friendId: String): List<ChatMessage> {
-        return _chatHistories[friendId] ?: emptyList()
+        return _chatHistories[friendId] ?: mutableListOf()
     }
 
     fun sendMessage(friendKey: String) {
@@ -80,8 +88,9 @@ class ChatViewModel(
         if (msg.isNotBlank()) {
             try {
                 // 使用公钥加密消息内容
-                val publicKey = base64ToPublicKey(friendKey) // 得到一个 PublicKey
-                val encryptedMsg = encryptWithKey(publicKey, msg)
+//                val publicKey = base64ToPublicKey(friendKey) // 得到一个 PublicKey
+//                val encryptedMsg = encryptWithKey(publicKey, msg)
+//                android.util.Log.d("WebSocket", "加密后的消息内容: $encryptedMsg")
                 val payloadJson = JSONObject().apply {
                     put("content", msg)
                     put("message_type", "text")
@@ -96,16 +105,20 @@ class ChatViewModel(
                     put("target_unique", currentFriendId)
                     put("payload", payloadBase64)
                 }
+                android.util.Log.d("WebSocket", "准备发送消息: $messageJson")
 
                 WebSocketManager.send(messageJson.toString())
                 val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
                 val message = ChatMessage(msg, isMe = true, timestamp = timestamp)
-                _chatHistories.getOrPut(currentFriendId) { mutableListOf() }.add(message)
+                _chatHistories.getOrPut(currentFriendId) { mutableStateListOf() }.add(message)
+                android.util.Log.d("WebSocket", "已添加本地消息: $message")
                 _input.value = ""
 
                 viewModelScope.launch {
+                    val userId = LoginPreferences.getUniqueIdOnce(context)
                     messageDao.insertMessage(
                         MessageEntity(
+                            userId = userId,
                             friendId = currentFriendId,
                             content = msg,
                             timestamp = timestamp,
@@ -115,6 +128,7 @@ class ChatViewModel(
                 }
             } catch (e: Exception) {
                 // 可选：记录发送失败
+                android.util.Log.e("WebSocket", "发送消息出错: ${e.message}", e)
             }
         }
     }
@@ -133,7 +147,8 @@ data class ChatSession(
 )
 
 class ChatListViewModel(
-    private val messageDao: MessageDao
+    private val messageDao: MessageDao,
+    private val context: Context
 ) : ViewModel() {
 
     private val _chatSessions = MutableStateFlow<List<ChatSession>>(emptyList())
@@ -141,7 +156,8 @@ class ChatListViewModel(
 
     init {
         viewModelScope.launch {
-            messageDao.getLatestMessages().collect { messages ->
+            val userId = LoginPreferences.getUniqueIdOnce(context)
+            messageDao.getLatestMessages(userId = userId).collect { messages ->
                 _chatSessions.value = messages.map {
                     ChatSession(
                         friendId = it.friendId,

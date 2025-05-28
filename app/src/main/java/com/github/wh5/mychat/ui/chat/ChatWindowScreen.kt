@@ -29,10 +29,10 @@ fun ChatWindowScreen(
     val context = LocalContext.current
     val db = com.github.wh5.mychat.data.local.AppDatabase.getDatabase(context)
     val viewModel: ChatViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        factory = com.github.wh5.mychat.viewmodel.ChatViewModelFactory(friendId, db.messageDao())
+        factory = com.github.wh5.mychat.viewmodel.ChatViewModelFactory(friendId, db.messageDao(),context)
     )
 
-    val messages = viewModel.chatHistories[friendId] ?: emptyList()
+    val messages = viewModel.chatHistories.getOrPut(friendId) { mutableStateListOf() }
     val input by viewModel.input.collectAsState()
 
     val listState = rememberLazyListState()
@@ -91,10 +91,12 @@ fun ChatWindowScreen(
                             val sharedPrefs = context.getSharedPreferences("friend_keys", 0)
                             val keyString = sharedPrefs.getString("key_$friendId", null)
 
+                            android.util.Log.d("WebSocket", "点击发送按钮，准备发送消息: $input")
+                            android.util.Log.d("WebSocket", "调用 sendMessage，使用的 key: $keyString")
                             viewModel.sendMessage(keyString.toString())
 
                             val newMessage = ChatMessage(content = input, isMe = true, timestamp = timestamp)
-                            viewModel.chatHistories.getOrPut(friendId) { mutableListOf() }.add(newMessage)
+                            viewModel.chatHistories.getOrPut(friendId) { mutableStateListOf() }.add(newMessage)
 
                             viewModel.updateInput("") // 清空输入框
 
@@ -118,25 +120,27 @@ fun ChatWindowScreen(
                 .padding(bottom = 88.dp)
         ) {
             items(messages) { msg ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalArrangement = if (msg.isMe) Arrangement.End else Arrangement.Start
-                ) {
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (msg.isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        modifier = Modifier.widthIn(max = 280.dp)
+                if (msg.content.isNotBlank()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        horizontalArrangement = if (msg.isMe) Arrangement.End else Arrangement.Start
                     ) {
-                        Text(
-                            text = msg.content,
-                            modifier = Modifier.padding(12.dp),
-                            color = if (msg.isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (msg.isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            modifier = Modifier.widthIn(max = 280.dp)
+                        ) {
+                            Text(
+                                text = msg.content,
+                                modifier = Modifier.padding(12.dp),
+                                color = if (msg.isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }

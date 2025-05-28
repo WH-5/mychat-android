@@ -78,6 +78,23 @@ fun FriendProfileScreen(friendName: String = "好友昵称", friendId: String, n
                 ) {
                     Text("发送消息")
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        viewModel.deleteFriend(friendId) { success, message ->
+                            Toast.makeText(context, if (success) "删除成功" else "删除失败：$message", Toast.LENGTH_SHORT).show()
+                            if (success) {
+                                navController?.popBackStack()
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("删除好友", color = Color.White)
+                }
             }
         }
     }

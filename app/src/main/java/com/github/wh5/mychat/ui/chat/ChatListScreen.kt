@@ -32,7 +32,7 @@ data class ChatSession(
 fun ChatListScreen(navController: NavController) {
     val context = LocalContext.current
     val db = AppDatabase.getDatabase(context)
-    val factory = ChatListViewModelFactory(db.messageDao())
+    val factory = ChatListViewModelFactory(db.messageDao(), context)
     val viewModel: ChatListViewModel = viewModel(factory = factory)
 
     val chatSessions by viewModel.chatSessions.collectAsState()

@@ -102,13 +102,13 @@ object ApiClient {
             @retrofit2.http.Body body: Map<String, String>
         ): Map<String, String>
 
-        @retrofit2.http.POST("friend/delete")
-        suspend fun deleteFriend(
-            @retrofit2.http.Body body: Map<String, String>
-        ): Map<String, String>
 
         @retrofit2.http.GET("friend/request/pending")
         suspend fun getPendingFriendRequests(): Map<String, List<PendingRequest>>
+
+        // 正确的删除好友接口定义
+        @retrofit2.http.POST("friend/delete")
+        suspend fun deleteFriend(@retrofit2.http.Body body: Map<String, String>): Map<String, String>
     }
 
     val apiService: ApiService by lazy {
@@ -152,10 +152,7 @@ object ApiClient {
         return apiService.updateFriendRemark(body)
     }
 
-    suspend fun deleteFriend(uniqueId: String): Map<String, String> {
-        val body = mapOf("unique_id" to uniqueId)
-        return apiService.deleteFriend(body)
-    }
+
 
     suspend fun getPendingFriendRequests(): List<PendingRequest> {
         try {
@@ -178,4 +175,10 @@ object ApiClient {
             throw e
         }
     }
+    // 删除好友
+    suspend fun deleteFriend(targetUniqueId: String): Map<String, String> {
+        val body = mapOf("target_unique_id" to targetUniqueId)
+        return apiService.deleteFriend(body)
+    }
 }
+

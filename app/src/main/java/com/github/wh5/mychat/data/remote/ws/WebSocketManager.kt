@@ -93,7 +93,9 @@ object WebSocketManager : WebSocketListener() {
 
                 CoroutineScope(Dispatchers.IO).launch {
                     val context = com.github.wh5.mychat.MyApplication.instance.applicationContext
+                    val userId = com.github.wh5.mychat.data.local.LoginPreferences.getUniqueIdOnce(context)
                     val message = com.github.wh5.mychat.data.local.MessageEntity(
+                        userId = userId,
                         friendId = from,
                         content = content,
                         timestamp = timestamp,
